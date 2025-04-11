@@ -2,25 +2,27 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>3 Pizzas con Algoritmos de Línea</title>
+    <title>Pizzas y Algoritmos</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <script src="sketch.js" defer></script>
   </head>
   <body>
     <h1>Pizzas con Algoritmos de Línea</h1>
+
     <div class="controls">
-      <label>Rebanadas por pizza:</label>
+      <label for="slicesInput">Rebanadas por pizza:</label>
       <input type="number" id="slicesInput" value="8" min="1" />
-      <button onclick="drawPizzas()">Dividir</button>
+      <button id="drawBtn">Dividir</button>
     </div>
 
-    <div class="canvas-container"></div>
+    <div id="canvas-container"></div>
 
     <div class="labels">
       <div>🧮 Punto-Pendiente</div>
       <div>📐 DDA</div>
       <div>📏 Bresenham</div>
     </div>
+
+    <script src="sketch.js"></script>
   </body>
 </html>

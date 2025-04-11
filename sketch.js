@@ -1,61 +1,90 @@
-let slices = 8;
+let slicesInput;
+let drawBtn;
 
 function setup() {
-  let canvas = createCanvas(900, 300);
-  canvas.parent(document.querySelector(".canvas-container"));
+  let canvas = createCanvas(900, 400);
+  canvas.parent("canvas-container");
   noLoop();
+
+  slicesInput = document.getElementById("slicesInput");
+  drawBtn = document.getElementById("drawBtn");
+
+  drawBtn.addEventListener("click", () => {
+    redraw();
+  });
 }
 
 function draw() {
-  background(255);
-  drawPizzas();
-}
-
-function drawPizzas() {
   clear();
   background(255);
-  slices = parseInt(document.getElementById("slicesInput").value);
-  let radius = 80;
+  let slices = parseInt(slicesInput.value);
+  if (isNaN(slices) || slices < 1) return;
 
-  drawPizza(width / 6, height / 2, radius, slices, drawLinePointSlope);
-  drawPizza(width / 2, height / 2, radius, slices, drawLineDDA);
-  drawPizza((5 * width) / 6, height / 2, radius, slices, drawLineBresenham);
+  drawPizza(150, 200, 100, slices, drawLinePuntoPendiente);
+  drawPizza(450, 200, 100, slices, drawLineDDA);
+  drawPizza(750, 200, 100, slices, drawLineBresenham);
 }
 
-function drawPizza(cx, cy, r, numSlices, lineAlgorithm) {
-  fill(255, 204, 100);
-  stroke(0);
-  circle(cx, cy, r * 2);
+function drawPizza(x, y, r, slices, lineFunc) {
+  drawCircleMidpoint(x, y, r);
+  let angleStep = TWO_PI / slices;
 
-  for (let i = 0; i < numSlices; i++) {
-    let angle = (TWO_PI / numSlices) * i;
-    let x = cx + r * cos(angle);
-    let y = cy + r * sin(angle);
-    lineAlgorithm(cx, cy, x, y);
+  for (let i = 0; i < slices; i++) {
+    let angle = angleStep * i;
+    let xEnd = int(x + r * cos(angle));
+    let yEnd = int(y + r * sin(angle));
+    lineFunc(x, y, xEnd, yEnd);
   }
 }
 
-function drawLinePointSlope(x0, y0, x1, y1) {
+function drawCircleMidpoint(xc, yc, r) {
+  let x = 0;
+  let y = r;
+  let p = 1 - r;
+
+  plotCirclePoints(xc, yc, x, y);
+  while (x < y) {
+    x++;
+    if (p < 0) {
+      p += 2 * x + 1;
+    } else {
+      y--;
+      p += 2 * (x - y) + 1;
+    }
+    plotCirclePoints(xc, yc, x, y);
+  }
+}
+
+function plotCirclePoints(xc, yc, x, y) {
+  point(xc + x, yc + y);
+  point(xc - x, yc + y);
+  point(xc + x, yc - y);
+  point(xc - x, yc - y);
+  point(xc + y, yc + x);
+  point(xc - y, yc + x);
+  point(xc + y, yc - x);
+  point(xc - y, yc - x);
+}
+
+function drawLinePuntoPendiente(x0, y0, x1, y1) {
   let dx = x1 - x0;
   let dy = y1 - y0;
 
   if (abs(dx) > abs(dy)) {
+    if (x0 > x1) [x0, y0, x1, y1] = [x1, y1, x0, y0];
     let m = dy / dx;
-    let b = y0 - m * x0;
-    let startX = min(x0, x1);
-    let endX = max(x0, x1);
-    for (let x = startX; x <= endX; x++) {
-      let y = m * x + b;
-      point(x, y);
+    let y = y0;
+    for (let x = x0; x <= x1; x++) {
+      point(x, round(y));
+      y += m;
     }
   } else {
+    if (y0 > y1) [x0, y0, x1, y1] = [x1, y1, x0, y0];
     let mInv = dx / dy;
-    let b = x0 - mInv * y0;
-    let startY = min(y0, y1);
-    let endY = max(y0, y1);
-    for (let y = startY; y <= endY; y++) {
-      let x = mInv * y + b;
-      point(x, y);
+    let x = x0;
+    for (let y = y0; y <= y1; y++) {
+      point(round(x), y);
+      x += mInv;
     }
   }
 }
@@ -69,7 +98,6 @@ function drawLineDDA(x0, y0, x1, y1) {
 
   let x = x0;
   let y = y0;
-
   for (let i = 0; i <= steps; i++) {
     point(round(x), round(y));
     x += xInc;
@@ -78,11 +106,6 @@ function drawLineDDA(x0, y0, x1, y1) {
 }
 
 function drawLineBresenham(x0, y0, x1, y1) {
-  x0 = round(x0);
-  y0 = round(y0);
-  x1 = round(x1);
-  y1 = round(y1);
-
   let dx = abs(x1 - x0);
   let dy = abs(y1 - y0);
   let sx = x0 < x1 ? 1 : -1;
